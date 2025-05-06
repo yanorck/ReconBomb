@@ -3,7 +3,6 @@ from utils.cli import (
     obter_entrada, mostrar_resultados, mostrar_erro, mostrar_sucesso,
     mostrar_progresso, display_hosts
 )
-from modules.port_scan import ScannerPortas, descobrir_hosts
 from modules.web.tech_detector import DetectorTecnologias
 from modules.web.waf_detector import DetectorWAF
 from modules.web.ssl_analyzer import AnalisadorSSL
@@ -38,82 +37,9 @@ def executar_portscan():
         
     except Exception as e:
         mostrar_erro(f"Erro ao executar portscan: {str(e)}")
-
-
-def obter_ip_local():
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-            s.connect(("8.8.8.8", 80))
-            return s.getsockname()[0]
     except Exception as e:
-        mostrar_erro(f"Erro ao obter o IP local: {e}")
-        return None
+        mostrar_erro(f"Erro inesperado: {str(e)}")
 
-def resolver_alvo(alvo):
-    try:
-        if alvo.startswith("http://"):
-            alvo = alvo[len("http://"):]
-        elif alvo.startswith("https://"):
-            alvo = alvo[len("https://"):]
-        if alvo.endswith("/"):
-            alvo = alvo[:-1]
-        ip = socket.gethostbyname(alvo)
-        return ip
-    except socket.gaierror:
-        mostrar_erro(f"Não foi possível resolver o endereço '{alvo}'")
-        return None
-
-def escanear_portas():
-    scanner = ScannerPortas()
-    
-    while True:
-        mostrar_menu_escaneamento()
-        
-        escolha = obter_entrada("Escolha uma opção")
-        
-        if escolha == "1":
-            executar_portscan()
-        
-        elif escolha == "2":
-            host = obter_entrada("Digite o IP ou hostname")
-            portas = scanner.escanear_portas(host)
-            print(f"\nPortas abertas em {host}:")
-            for porta in portas:
-                servico = scanner.obter_servico(porta)
-                print(f"- Porta {porta} ({servico})")
-        
-        elif escolha == "3":
-            host = obter_entrada("Digite o IP ou hostname")
-            portas = obter_entrada("Digite as portas (ex: 80,443,8080) ou pressione Enter para portas comuns")
-            portas = [int(p) for p in portas.split(",")] if portas else None
-            resultados = scanner.escanear_tcp(host, portas)
-            print(f"\nResultados do scan TCP em {host}:")
-            for porta, status in resultados.items():
-                print(f"- Porta {porta}: {status}")
-        
-        elif escolha == "4":
-            host = obter_entrada("Digite o IP ou hostname")
-            portas = obter_entrada("Digite as portas (ex: 53,123,161) ou pressione Enter para portas comuns")
-            portas = [int(p) for p in portas.split(",")] if portas else None
-            resultados = scanner.escanear_udp(host, portas)
-            print(f"\nResultados do scan UDP em {host}:")
-            for porta, status in resultados.items():
-                print(f"- Porta {porta}: {status}")
-        
-        elif escolha == "5":
-            host = obter_entrada("Digite o IP ou hostname")
-            resultado = scanner.detectar_os(host)
-            if resultado['status'] == 'sucesso':
-                print(f"\nSistema operacional detectado: {resultado['os']}")
-                print(f"Detalhes: {resultado['detalhes']}")
-            else:
-                print(f"\nErro: {resultado['mensagem']}")
-        
-        elif escolha == "6":
-            return
-        
-        else:
-            print("Opção inválida!")
 
 def reconhecimento_web(alvo):
     mostrar_progresso("Iniciando reconhecimento web...")
@@ -163,7 +89,7 @@ def main():
         escolha = obter_entrada("Escolha uma opção")
         
         if escolha == "1":
-            escanear_portas()
+            executar_portscan()
         elif escolha == "2":
             alvo = obter_entrada("Digite o alvo (URL ou domínio)")
             reconhecimento_web(alvo)

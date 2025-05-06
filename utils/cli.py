@@ -1,6 +1,5 @@
 import argparse
 from ipaddress import ip_address
-from modules.port_scan import ScannerPortas
 from modules.web.tech_detector import DetectorTecnologias
 from modules.dns.enumerator import EnumeradorDNS
 from modules.network.network_scanner import ScannerRede
