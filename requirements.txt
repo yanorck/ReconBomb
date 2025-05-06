@@ -1,0 +1,11 @@
+python-nmap==0.7.1
+requests==2.31.0
+beautifulsoup4==4.12.2
+dnspython==2.4.2
+colorama==0.4.6
+rich==13.7.0
+python-whois==0.8.0
+cryptography==41.0.7
+pyOpenSSL==24.0.0
+tqdm==4.66.2
+pygame==2.6.1
