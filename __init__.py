@@ -6,6 +6,4 @@ que integra diversas ferramentas e técnicas de reconhecimento em uma
 interface unificada.
 """
 
-__version__ = '1.0.0'
-__author__ = 'ReconBomb Team'
-__license__ = 'MIT' 
+__author__ = 'Yan Romano'
