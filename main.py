@@ -17,8 +17,6 @@ import json
 import os
 from datetime import datetime
 from colorama import Fore, Style, init
-import pygame
-import time
 import re
 from urllib.parse import unquote, urlparse
 import requests
@@ -27,153 +25,13 @@ import threading
 import select
 
 init()
-pygame.mixer.init()
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 ARQUIVO_HISTORICO = "url_history.json"
-DIRETORIO_MUSICA = "assets/music"
-DIRETORIO_ASCII = "assets/ascii"
-
-musica_atual = None
-thread_musica = None
-musica_tocando = False
-controle_musica = {
-    'tocando': False,
-    'pausada': False,
-    'parar': False
-}
-
-def thread_controle_musica():
-    global musica_tocando, musica_atual
-    while not controle_musica['parar']:
-        if controle_musica['tocando'] and not controle_musica['pausada']:
-            if not pygame.mixer.music.get_busy() and musica_atual:
-                proxima_musica()
-        time.sleep(0.1)
-
-def iniciar_controle_musica():
-    global thread_musica
-    if not thread_musica or not thread_musica.is_alive():
-        thread_musica = threading.Thread(target=thread_controle_musica, daemon=True)
-        thread_musica.start()
-
-def parar_controle_musica():
-    global controle_musica
-    controle_musica['parar'] = True
-    if thread_musica and thread_musica.is_alive():
-        thread_musica.join(timeout=1)
-
-def tocar_musica(caminho_arquivo):
-    try:
-        pygame.mixer.music.load(caminho_arquivo)
-        pygame.mixer.music.play(-1)
-        musica_atual = caminho_arquivo
-        controle_musica['tocando'] = True
-        controle_musica['pausada'] = False
-        return True
-    except Exception as e:
-        mostrar_erro(f"Erro ao tocar música: {e}")
-        return False
-
-def pausar_musica():
-    global controle_musica
-    if controle_musica['tocando']:
-        if controle_musica['pausada']:
-            pygame.mixer.music.unpause()
-            controle_musica['pausada'] = False
-            print("Música retomada")
-        else:
-            pygame.mixer.music.pause()
-            controle_musica['pausada'] = True
-            print("Música pausada")
-
-def parar_musica():
-    global controle_musica
-    pygame.mixer.music.stop()
-    controle_musica['tocando'] = False
-    controle_musica['pausada'] = False
-    print("Música parada")
-
-def proxima_musica():
-    global musica_atual, lista_musicas, indice_atual
-    if lista_musicas:
-        indice_atual = (indice_atual + 1) % len(lista_musicas)
-        nome, url = lista_musicas[indice_atual]
-        print(f"\nTocando: {nome}")
-        caminho_local = baixar_musica(url)
-        if caminho_local:
-            tocar_musica(caminho_local)
-
-def musica_anterior():
-    global musica_atual, lista_musicas, indice_atual
-    if lista_musicas:
-        indice_atual = (indice_atual - 1) % len(lista_musicas)
-        nome, url = lista_musicas[indice_atual]
-        print(f"\nTocando: {nome}")
-        caminho_local = baixar_musica(url)
-        if caminho_local:
-            tocar_musica(caminho_local)
-
-def mostrar_controles_musica():
-    print("\nControles de Música:")
-    print("P - Pausar/Retomar")
-    print("S - Parar")
-    print("N - Próxima música")
-    print("B - Música anterior")
-    print("M - Mostrar este menu")
-    print("Q - Voltar ao menu principal")
-
-def tratar_comando_musica(cmd):
-    cmd = cmd.lower()
-    if cmd == 'p':
-        pausar_musica()
-    elif cmd == 's':
-        parar_musica()
-    elif cmd == 'n':
-        proxima_musica()
-    elif cmd == 'b':
-        musica_anterior()
-    elif cmd == 'm':
-        mostrar_controles_musica()
-    elif cmd == 'q':
-        parar_musica()
-        return False
-    return True
 
 def garantir_diretorios():
-    os.makedirs(DIRETORIO_MUSICA, exist_ok=True)
-    os.makedirs(DIRETORIO_ASCII, exist_ok=True)
-
-def baixar_musica(url):
-    caminho_local = obter_caminho_musica_local(url)
-    if os.path.exists(caminho_local):
-        return caminho_local
-    print(f"\nBaixando música: {extrair_nome_musica(url)}")
-    if baixar_musica(url, caminho_local):
-        return caminho_local
-    return None
-
-def obter_caminho_musica_local(url):
-    nome_arquivo = os.path.basename(urlparse(url).path)
-    if not nome_arquivo:
-        nome_arquivo = f"musica_{hash(url)}.mp3"
-    return os.path.join(DIRETORIO_MUSICA, nome_arquivo)
-
-def extrair_nome_musica(url):
-    url = unquote(url)
-    nome = os.path.splitext(os.path.basename(url))[0]
-    nome = nome.replace('_', ' ').replace('-', ' ')
-    nome = re.sub(r'[^\w\s-]', '', nome)
-    nome = ' '.join(palavra.capitalize() for palavra in nome.split())
-    return nome if nome else "Música Desconhecida"
-
-def mostrar_ascii_mestre():
-    try:
-        with open('mestre.txt', 'r') as f:
-            ascii_art = f.read()
-            print(Fore.CYAN + ascii_art + Style.RESET_ALL)
-    except FileNotFoundError:
-        print(Fore.YELLOW + "Arquivo mestre.txt não encontrado" + Style.RESET_ALL)
+    """Garante que os diretórios necessários existam"""
+    os.makedirs("assets/data", exist_ok=True)
 
 def obter_ip_local():
     try:
@@ -310,55 +168,9 @@ def escanear_diretorios(alvo):
     else:
         mostrar_erro("Nenhum diretório ou arquivo encontrado")
 
-def relaxar_com_musica():
-    print("\n=== Relaxamento com Música ===")
-    print("1. Música Calma")
-    print("2. Sons da Natureza")
-    print("3. Voltar ao menu principal")
-    
-    escolha = input("\nEscolha uma opção: ")
-    
-    if escolha == "1":
-        url_musica = "https://example.com/calm_music.mp3"
-        caminho_musica = "assets/music/calm_music.mp3"
-        
-        if not os.path.exists(caminho_musica):
-            if not baixar_musica(url_musica):
-                print("Não foi possível baixar a música.")
-                return
-        
-        tocar_musica(caminho_musica)
-        print("\nMúsica tocando... Pressione Ctrl+C para parar.")
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            pygame.mixer.music.stop()
-            print("\nMúsica parada.")
-    
-    elif escolha == "2":
-        url_musica = "https://example.com/nature_sounds.mp3"
-        caminho_musica = "assets/music/nature_sounds.mp3"
-        
-        if not os.path.exists(caminho_musica):
-            if not baixar_musica(url_musica):
-                print("Não foi possível baixar a música.")
-                return
-        
-        tocar_musica(caminho_musica)
-        print("\nSons da natureza tocando... Pressione Ctrl+C para parar.")
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            pygame.mixer.music.stop()
-            print("\nMúsica parada.")
-
 def main():
     garantir_diretorios()
-    mostrar_ascii_mestre()
     mostrar_banner()
-    iniciar_controle_musica()
     
     while True:
         mostrar_menu_principal()
@@ -388,9 +200,6 @@ def main():
             resultados = detector_waf.detectar_waf(alvo)
             mostrar_resultados("Detecção de WAF", resultados)
         elif escolha == "7":
-            relaxar_com_musica()
-        elif escolha == "8":
-            parar_controle_musica()
             mostrar_sucesso("Saindo do programa...")
             sys.exit(0)
         else:
@@ -400,7 +209,6 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        parar_controle_musica()
         mostrar_sucesso("\nPrograma interrompido pelo usuário")
         sys.exit(0)
     except Exception as e:

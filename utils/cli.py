@@ -81,8 +81,7 @@ def mostrar_menu_principal():
     print("4. Análise SSL/TLS")
     print("5. Escaneamento de Diretórios")
     print("6. Detecção de WAF")
-    print("7. Relaxar com Música")
-    print("8. Sair")
+    print("7. Sair")
 
 def mostrar_menu_escaneamento():
     print("\n=== Menu de Escaneamento de Portas ===")
@@ -92,12 +91,6 @@ def mostrar_menu_escaneamento():
     print("4. Escanear portas UDP")
     print("5. Detectar sistema operacional")
     print("6. Voltar ao menu anterior")
-
-def mostrar_menu_musica():
-    print("\n=== Menu de Música ===")
-    print("1. Música Calma")
-    print("2. Sons da Natureza")
-    print("3. Voltar ao menu principal")
 
 def obter_entrada(mensagem):
     return input(f"\n{mensagem}: ")
@@ -131,11 +124,6 @@ def limpar_tela():
 
 def aguardar_tecla():
     input("\nPressione Enter para continuar...")
-
-def mostrar_controles_musica():
-    print("\nControles de Música:")
-    print("Pressione Ctrl+C para parar a música")
-    print("Pressione Ctrl+Z para pausar/retomar")
 
 def display_banner():
     banner = """
