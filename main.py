@@ -13,25 +13,32 @@ from modules.network.network_scanner import ScannerRede
 import socket
 import sys
 import urllib3
-import json
-import os
 from datetime import datetime
 from colorama import Fore, Style, init
-import re
 from urllib.parse import unquote, urlparse
-import requests
 from tqdm import tqdm
-import threading
-import select
+import os
+import subprocess
 
 init()
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+def executar_portscan():
+    """Executa o script main.py do módulo portscan"""
+    try:
+        # Construa o caminho para o arquivo main.py
+        caminho_portscan = os.path.join('modules', 'port_scan', 'main.py')
+        
+        # Verifique se o arquivo existe
+        if not os.path.exists(caminho_portscan):
+            mostrar_erro("Arquivo port_scan/main.py não encontrado!")
+            return
+        
+        # Execute o arquivo usando o interpretador Python
+        subprocess.run([sys.executable, caminho_portscan])
+        
+    except Exception as e:
+        mostrar_erro(f"Erro ao executar portscan: {str(e)}")
 
-ARQUIVO_HISTORICO = "url_history.json"
-
-def garantir_diretorios():
-    """Garante que os diretórios necessários existam"""
-    os.makedirs("assets/data", exist_ok=True)
 
 def obter_ip_local():
     try:
@@ -56,22 +63,6 @@ def resolver_alvo(alvo):
         mostrar_erro(f"Não foi possível resolver o endereço '{alvo}'")
         return None
 
-def escanear_rede():
-    ip_local = obter_ip_local()
-    if not ip_local:
-        return
-    rede = f"{ip_local.rsplit('.', 1)[0]}.0/24"
-    mostrar_progresso(f"Detectado IP local: {ip_local}")
-    mostrar_progresso(f"Escaneando a rede {rede} para encontrar hosts ativos...")
-    hosts_ativos = descobrir_hosts(rede)
-    if not hosts_ativos:
-        mostrar_erro("Nenhum host ativo encontrado na rede")
-        return
-    ip_selecionado = display_hosts(hosts_ativos)
-    if not ip_selecionado:
-        return
-    return ip_selecionado
-
 def escanear_portas():
     scanner = ScannerPortas()
     
@@ -81,11 +72,7 @@ def escanear_portas():
         escolha = obter_entrada("Escolha uma opção")
         
         if escolha == "1":
-            rede = obter_entrada("Digite a rede (ex: 192.168.1.0/24) ou pressione Enter para rede local")
-            hosts = scanner.escanear_rede(rede if rede else None)
-            print("\nHosts ativos encontrados:")
-            for host in hosts:
-                print(f"- {host}")
+            executar_portscan()
         
         elif escolha == "2":
             host = obter_entrada("Digite o IP ou hostname")
@@ -169,7 +156,6 @@ def escanear_diretorios(alvo):
         mostrar_erro("Nenhum diretório ou arquivo encontrado")
 
 def main():
-    garantir_diretorios()
     mostrar_banner()
     
     while True:
